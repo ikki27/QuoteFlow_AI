@@ -1,5 +1,9 @@
 # QuoteFlow AI
 
+[![CI/CD](https://github.com/ikki27/QuoteFlow_AI/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/ikki27/QuoteFlow_AI/actions/workflows/ci-cd.yml)
+
+**Nameščena aplikacija:** https://quoteflow-ai-ikki27.netlify.app
+
 Večpodjetniška spletna aplikacija za vodenje projektov, ekip, cenika, materialov, ponudb in računov. Uporabnik lahko nastopa kot stranka ter kot mojster ali delavec pri različnih podjetjih.
 
 **Tehnologije:** React, TypeScript, Vite · Python, FastAPI · Supabase PostgreSQL in Supabase Auth.
@@ -85,9 +89,18 @@ Avtomatsko preverjanje istega poteka (API in Supabase Auth sta nadomeščena): `
 
 ## CI/CD in namestitev
 
-Workflow [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) se zažene ob pull requestu v `main` in ob pushu na `main`. Jobi `lint` (Ruff, ESLint), `test` (pytest, Vitest s pokritostjo) in `build` (frontend `dist/`, paket backenda) so obvezni za združitev v `main`. Ob pushu na `main` job `deploy` namesti frontend na Netlify in backend na Render (okolje `production`).
+Workflow [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) se zažene ob pull requestu v `main` in ob pushu na `main`. Faze cevovoda:
 
-Nameščena aplikacija: https://quoteflow-ai-ikki27.netlify.app
+| Job | Kaj naredi |
+|---|---|
+| `lint` | Preveri slog in kakovost kode: Ruff za backend, ESLint za frontend. |
+| `test` | Zažene teste backenda (pytest) in frontenda (Vitest) ter shrani poročilo o pokritosti kode kot artefakt `coverage`. |
+| `build` | Zgradi frontend (`dist/`) in pripravi paket backenda; oba shrani kot artefakta. Odvisnosti so predpomnjene (npm, pip). |
+| `deploy` | Samo ob pushu na `main` in po uspešnih `lint`, `test` in `build`: namesti frontend iz artefakta na Netlify in sproži namestitev backenda na Render (okolje `production`). |
+
+`lint`, `test` in `build` so obvezne preverbe za združitev pull requesta v `main`.
+
+Nameščena aplikacija: https://quoteflow-ai-ikki27.netlify.app (backend: https://quoteflow-api-d6bs.onrender.com/api/health)
 
 ## Hramba podatkov
 
