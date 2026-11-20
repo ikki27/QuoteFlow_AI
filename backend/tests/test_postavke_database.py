@@ -242,7 +242,7 @@ def test_vrsta_dela_vloge_in_tujina(e):
 
 @pytest.mark.parametrize('who', ['owner_b', 'worker', 'customer', 'outsider', 'admin'])
 def test_vrste_dela_materiali_postavke_in_izmere_so_samo_za_mojstra_podjetja(e, who):
-    it = worked(e); q = draft(e); send(e, q)
+    worked(e); q = draft(e); send(e, q)
     for t in LIVE + ['izmera_ponudbe', 'delo_ponudbe', 'material_vrste_dela']:
         if who == 'owner_b' and t == 'vrsta_dela':  # his own vrsta (fixture vb) is legitimately readable, A's must not be
             with as_user(e.db, e.users[who]): assert [r['id'] for r in e.db.execute('select id from quoteflow.vrsta_dela').fetchall()] == [e.vb]
@@ -251,7 +251,7 @@ def test_vrste_dela_materiali_postavke_in_izmere_so_samo_za_mojstra_podjetja(e, 
 
 
 def test_stranka_vidi_izmere_poslane_ponudbe_ne_pa_dela_in_materialov(e):
-    it = worked(e); q = draft(e); send(e, q)
+    worked(e); q = draft(e); send(e, q)
     with as_user(e.db, e.users['customer']):
         assert count(e.db, 'izmera_ponudbe') == 3 and count(e.db, 'postavka_ponudbe') == 1
     with as_user(e.db, e.users['outsider']): assert count(e.db, 'izmera_ponudbe') == 0
@@ -383,7 +383,7 @@ def test_negativna_vsota_izmer_je_qfp25_ob_vstavljanju_spremembi_predznaka_in_br
 
 
 def test_izmera_skupaj_je_vedno_polni_preracun_in_nikoli_negativna(e):
-    it = put(e, enota='kos')['id']; a = meas(e, it, kosi=D(10))['id']; b = meas(e, it, odstej=True, kosi=D(3))['id']; assert total(e.db, it) == summed(e.db, it) == 7
+    it = put(e, enota='kos')['id']; meas(e, it, kosi=D(10)); b = meas(e, it, odstej=True, kosi=D(3))['id']; assert total(e.db, it) == summed(e.db, it) == 7
     meas(e, it, izmera=b, odstej=True, kosi=D(7)); assert total(e.db, it) == 3 == summed(e.db, it)
     reject(e.db, 'update quoteflow.postavka_projekta set izmera_skupaj=-1 where id=%s', (it,))
     call(e.db, e.users, 'owner_a', 'odstrani_postavko_projekta', podjetje=e.a, projekt=e.pa, postavka=it); assert count(e.db, 'izmera') == 0

@@ -272,7 +272,7 @@ def test_stranke_projektov_ne_vrne_strank_drugih_podjetij(master, db, identities
 def test_tuj_mojster_ne_spremeni_faze_ne_uredi_ne_sproži_ogleda(master, db):
     client, selected, base, users, mail = master
     p = client.post(base + '/projekti', json=FORM | {'e_posta_stranke': mail}).json(); pid = p['id']
-    selected['name'] = 'owner_b'; b = client.get('/api/me').json() if False else None
+    selected['name'] = 'owner_b'
     own_b = [r for r in db.execute('select podjetje_id from quoteflow.vloga_uporabnika where uporabnik_id=%s and vloga=%s and aktivna', (users['owner_b'][0], 'mojster')).fetchall()][0]['podjetje_id']
     foreign = f'/api/podjetja/{own_b}/projekti/{pid}'
     assert client.put(foreign, json={'naziv': 'Hack', 'opis': '', 'lokacija_izvedbe': ''}).status_code == 404

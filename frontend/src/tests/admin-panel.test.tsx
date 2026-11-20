@@ -46,7 +46,6 @@ beforeEach(()=>{vi.clearAllMocks();roles=initial();failure=null;loadFailures=0;
 });
 const open=async()=>{render(<Admin client={client}/>);await screen.findByRole('tablist');};
 const patches=()=>mockedApi.mock.calls.filter(c=>c[2]==='PATCH');
-const posts=()=>mockedApi.mock.calls.filter(c=>c[2]==='POST');
 const pick=(name:RegExp|string)=>userEvent.click(screen.getByRole('button',{name}));
 const members=()=>screen.getByRole('table',{name:/Člani/});
 const memberRow=(email:string)=>within(members()).getByRole('row',{name:new RegExp(email.replace('.','\\.'))});

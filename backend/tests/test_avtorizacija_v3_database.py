@@ -294,7 +294,7 @@ def test_admin_uporabniki_potrjen_ustreza_auth_email_confirmed_at(w):
 
 # --- odvzete vloge ---
 def test_odvzeti_mojster_dobi_403_z_istim_zetonom_na_novih_poteh(w):
-    mail = new_user(w.db, w.users, 'second')
+    new_user(w.db, w.users, 'second')
     r = grants(w, 'second', 'mojster'); assert r.status_code == 200, r.text; role = r.json()['id']
     probes = [('get', f'/api/podjetja/{w.a}/vrste-dela', None), ('get', f'/api/podjetja/{w.a}/delavci', None), ('get', f'/api/podjetja/{w.a}/delavci/povabila', None), ('get', f'/api/podjetja/{w.a}/projekti/{w.pa1}/postavke', None),
               ('get', f'/api/podjetja/{w.a}/projekti/{w.pa1}/ponudbe', None), ('post', f'/api/podjetja/{w.a}/delavci/povabila', {'e_posta': 'n-' + uuid4().hex + '@example.test'}),

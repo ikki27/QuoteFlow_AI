@@ -1,4 +1,6 @@
-import importlib, inspect, pytest
+import importlib
+import inspect
+import pytest
 from pydantic import ValidationError
 
 def test_stari_moduli_odstranjeni():

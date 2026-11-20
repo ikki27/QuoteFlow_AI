@@ -187,7 +187,7 @@ def refused(db, users, who, company, name):
     address = mail(db, users, name)
     with as_user(db, users[who]):
         try:
-            with db.transaction(): r = db.execute(f'select (quoteflow_private.ustvari_projekt(%s,%s,%s,%s,%s)).id as id', (company, address, 'N', 'O', 'L')).fetchone()
+            with db.transaction(): r = db.execute('select (quoteflow_private.ustvari_projekt(%s,%s,%s,%s,%s)).id as id', (company, address, 'N', 'O', 'L')).fetchone()
         except psycopg.Error as e:
             assert e.sqlstate == 'QFP06', e.sqlstate; return True
         return r['id'] is None
@@ -265,7 +265,7 @@ def test_api_veljavnost_se_uredi_in_poslana_ponudba_je_409_ne_503(master, db):
 
 
 def test_api_poslana_ponudba_ne_sledi_spremembam_projekta(master, db):
-    client, _, M, _, _ = master; p = M.rsplit('/', 1)[1]; it = add_item(db, p); q = mk(client, M); path = f"{M}/ponudbe/{q['id']}"
+    client, _, M, _, _ = master; p = M.rsplit('/', 1)[1]; add_item(db, p); q = mk(client, M); path = f"{M}/ponudbe/{q['id']}"
     assert client.post(path + '/poslji').status_code == 200; before = client.get(path).json()
     add_item(db, p, naziv='Po pošiljanju', price=D(500)); assert client.get(path).json() == before and before['skupaj'] == '219.60'
 

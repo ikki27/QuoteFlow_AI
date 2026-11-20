@@ -219,7 +219,7 @@ def test_revizijska_tabela_zahteva_veljavno_dejanje_in_izvajalca(env, db):
 
 
 def test_stranka_vidi_poslano_in_sprejeto_a_ne_osnutka_racuna_in_materialov(env, db):
-    users, a, _, p, cat = env; q = sent(db, users, a, p); q2 = raw_quote(db, p, n=2)
+    users, a, _, p, cat = env; q = sent(db, users, a, p); raw_quote(db, p, n=2)
     with as_user(db, users['customer']):
         assert {r['id'] for r in db.execute('select id from quoteflow.ponudba')} == {q}
     decide(db, users, p, q, True)
