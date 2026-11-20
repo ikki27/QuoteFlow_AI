@@ -4,11 +4,13 @@
 
 | Preverjanje | Rezultat |
 |---|---|
-| Backend `pytest` | 1417 uspešnih, 603 preskočenih (testi baze potrebujejo lokalni Supabase prek `TEST_DATABASE_URL`) |
+| Backend `pytest` (z `TEST_DATABASE_URL` na kopiji lokalne baze) | 2008 uspešnih, 12 preskočenih (živi testi oddaljene baze in prijavnega toka) |
 | Frontend `npm test` (Vitest) | 234/234 uspešnih |
 | Frontend `npm run build` | uspešno |
 | Frontend `npm run test:e2e` (Playwright, API nadomeščen) | 495 uspešnih, 2 preskočena, 1 neuspešen |
 | Zagon z lokalnim Supabase (`uvicorn` + `npm run dev`) | frontend na `localhost:5173` deluje, `/api/health` vrne 200, `/api/ready` vrne `ok` (baza povezana, 22 tabel, vse migracije), prijava prek Supabase Auth in `/api/me` delujeta |
+
+Na Windows trije testi v `test_katalog_v3_migracija_database.py` brez nastavitve `PYTHONUTF8=1` padejo, ker `read_text()` brez kodiranja prebere migracijo v kodni tabeli cp1250 in pokvari enoti `m²` in `m³`. Z `PYTHONUTF8=1` uspejo vsi.
 
 Neuspešen e2e test je `brez prefers-reduced-motion panel drsi (kontrolni test)` na mobilni širini: pričakuje animacijo `drawer-in`, po zadnji prenovi dizajna pa ima panel na telefonu animacijo `sheet-in`. Test ni bil posodobljen ob spremembi dizajna, delovanje aplikacije pa je pravilno.
 
