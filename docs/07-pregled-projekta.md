@@ -1,7 +1,5 @@
 # Pregled prevzetega projekta
 
-Pregled je narejen na stanju `main` ob prevzemu (commit `7574664`). Pregledal sem dokumentacijo (`docs/01–06`, ADR-0001–0013, razvojne zapise v `docs/razvoj/`), kodo backenda, frontenda in migracij ter aplikacijo zagnal lokalno.
-
 ## Lokalni zagon in testi
 
 | Preverjanje | Rezultat |
@@ -10,11 +8,11 @@ Pregled je narejen na stanju `main` ob prevzemu (commit `7574664`). Pregledal se
 | Frontend `npm test` (Vitest) | 234/234 uspešnih |
 | Frontend `npm run build` | uspešno |
 | Frontend `npm run test:e2e` (Playwright, API nadomeščen) | 495 uspešnih, 2 preskočena, 1 neuspešen |
-| Zagon (`uvicorn` + `npm run dev`) | `/api/health` vrne 200, frontend na `localhost:5173` deluje, `/api/ready` brez baze vrne 503 (pričakovano) |
+| Zagon z lokalnim Supabase (`uvicorn` + `npm run dev`) | frontend na `localhost:5173` deluje, `/api/health` vrne 200, `/api/ready` vrne `ok` (baza povezana, 22 tabel, vse migracije), prijava prek Supabase Auth in `/api/me` delujeta |
 
 Neuspešen e2e test je `brez prefers-reduced-motion panel drsi (kontrolni test)` na mobilni širini: pričakuje animacijo `drawer-in`, po zadnji prenovi dizajna pa ima panel na telefonu animacijo `sheet-in`. Test ni bil posodobljen ob spremembi dizajna, delovanje aplikacije pa je pravilno.
 
-Za polni potek (prijava, podatki) sta potrebna ključ in povezava do Supabase oziroma lokalni Supabase (`supabase start`, `supabase db reset`), ki ju v repozitoriju ni (`.env` je izključen iz Gita).
+Aplikacija je zagnana z lokalnim Supabase v Dockerju (vsebniki db, auth, rest, kong, inbucket). V `.env` (izključen iz Gita) so nastavljeni lokalni `SUPABASE_URL` (`http://127.0.0.1:54321`), javni ključ in `DATABASE_URL` za omejeno vlogo `quoteflow_app`. Skripta `scripts/configure_database.py` je namenjena oddaljenemu Supabase, zato je bilo geslo vloge `quoteflow_app` lokalno nastavljeno ročno.
 
 ## Implementirane funkcionalnosti MVP
 
@@ -44,11 +42,3 @@ V `docs/05` so trenutno zapisane zgodbe US-01–US-04 in US-08. Zgodbe US-05–U
 | US-04 Priprava ponudbe | Da | Izmere seštevajo in odštevajo, izračun je v SQL. Primer iz meril sprejema (540,00 / 118,80 / 658,80 €) je pokrit s testi. Ob pošiljanju nastane nespremenljiv posnetek postavk, izmer, materialov in dela. Stranka ne vidi osnutkov, urne postavke, ur, delavcev ali materialov. |
 | US-08 Delavci podjetja | Da | Povabilo poteče po 14 dneh, odgovor ne razkrije obstoja računa, vloga `delavec` nastane šele ob sprejemu. Odvzem in ponovna aktivacija ohranita zgodovino. Admin ima pogled »Podjetja in pravice«. |
 
-Implementacija pokriva vseh pet zgodb. Tudi odstranjene US-05–US-07 so implementirane in pokrite s testom celotnega poteka `frontend/e2e/acceptance.spec.ts`.
-
-## Opažene pomanjkljivosti
-
-- V `docs/05` manjkajo zgodbe US-05–US-07, čeprav jih dokument v uvodu omenja kot MVP.
-- E2E test animacije panela na mobilni širini ni usklajen z novim dizajnom (glej zgoraj).
-- `docs/04` še omenja 17 tabel, model ima po migracijah v3 22 tabel.
-- Testi baze (603) se brez lokalnega Supabase preskočijo, zato je za polno preverjanje potreben Supabase CLI.
