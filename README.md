@@ -83,6 +83,12 @@ Potek skozi vmesnik (potrebujete mojstra s podjetjem z davčno številko, cenik 
 
 Avtomatsko preverjanje istega poteka (API in Supabase Auth sta nadomeščena): `cd frontend && npm run test:e2e` (`e2e/acceptance.spec.ts`). Podrobnosti: [US-04–US-07](docs/razvoj/us-04-us-07-ponudbe-in-racuni.md).
 
+## CI/CD in namestitev
+
+Workflow [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) se zažene ob pull requestu v `main` in ob pushu na `main`. Jobi `lint` (Ruff, ESLint), `test` (pytest, Vitest s pokritostjo) in `build` (frontend `dist/`, paket backenda) so obvezni za združitev v `main`. Ob pushu na `main` job `deploy` namesti frontend na Netlify in backend na Render (okolje `production`).
+
+Nameščena aplikacija: https://quoteflow-ai-ikki27.netlify.app
+
 ## Hramba podatkov
 
 Izdani računi in poslane ponudbe so nespremenljivi posnetki, ki se hranijo 10 let (ZDDV-1, ZGD-1; GDPR člen 17(3)(b)). Tuji ključi na uporabnika so `RESTRICT`, zato stranke z računi ni mogoče trdo izbrisati; postopek anonimizacije je odprt ([#104](https://github.com/mocaales/QuoteFlow_AI/issues/104)). Naslov prejemnika na računu je kraj izvedbe, razen če ga mojster ob izdaji spremeni.
