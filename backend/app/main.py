@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from app.routers import identity, admin, prosnje, cenik, materiali, projekti, ponudbe, racuni, vrste_dela, postavke, delavci, povabila
