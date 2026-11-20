@@ -7,7 +7,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BeforeValidator, BaseModel, Field, StrictBool, field_validator
+from pydantic import BeforeValidator, BaseModel, StrictBool, field_validator
 
 from app.access import company_member, customer
 from app.auth import Principal, current_user

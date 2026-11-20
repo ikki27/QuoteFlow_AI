@@ -8,7 +8,7 @@ function Fire({ messages }: { messages: string[] }) { const toast = useToast(); 
 const show = (...messages: string[]) => { render(<ToastProvider><Fire messages={messages}/></ToastProvider>); return userEvent.setup({ advanceTimers: vi.advanceTimersByTime }); };
 const toasts = () => [...document.querySelectorAll('.toast-region .toast')];
 // Testing Library only auto-advances fake timers when a global jest exists.
-(globalThis as any).jest = { advanceTimersByTime: (ms: number) => vi.advanceTimersByTime(ms) };
+(globalThis as unknown as { jest: unknown }).jest = { advanceTimersByTime: (ms: number) => vi.advanceTimersByTime(ms) };
 beforeEach(() => { vi.useFakeTimers({ shouldAdvanceTime: false }); });
 afterEach(() => { vi.useRealTimers(); });
 

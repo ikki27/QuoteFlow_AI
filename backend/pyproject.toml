@@ -1,0 +1,13 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+# Projekt namenoma uporablja kompakten zapis: več ukazov v vrstici,
+# kratka imena (npr. l za vrstico) in lambde, shranjene v spremenljivke.
+ignore = ["E701", "E702", "E731", "E741"]
+
+[tool.ruff.lint.per-file-ignores]
+# Pytest fixture se uvozijo in nato uporabijo kot parametri testov.
+"tests/*" = ["F401", "F811"]
