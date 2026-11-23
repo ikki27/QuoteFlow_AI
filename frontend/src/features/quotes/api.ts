@@ -5,6 +5,7 @@ const base = (company: string, project: string) => `/podjetja/${company}/projekt
 export const getQuotes = (client: SupabaseClient, company: string, project: string) => api<QuoteSummary[]>(client, base(company, project));
 export const getQuote = (client: SupabaseClient, company: string, project: string, id: string) => api<Quote>(client, `${base(company, project)}/${id}`);
 export const createQuote = (client: SupabaseClient, company: string, project: string, data: QuoteInput = {}) => api<Quote>(client, base(company, project), 'POST', data);
+export const updateQuote = (client: SupabaseClient, company: string, project: string, id: string, data: QuoteInput) => api<Quote>(client, `${base(company, project)}/${id}`, 'PUT', data);
 export const sendQuote = (client: SupabaseClient, company: string, project: string, id: string) => api<Quote>(client, `${base(company, project)}/${id}/poslji`, 'POST');
 export const getCustomerQuotes = (client: SupabaseClient, project: string) => api<CustomerQuote[]>(client, `/projekti/${project}/ponudbe`);
 export const decideQuote = (client: SupabaseClient, project: string, id: string, accept: boolean) => api<CustomerQuote>(client, `/projekti/${project}/ponudbe/${id}/odlocitev`, 'POST', { sprejmi: accept });

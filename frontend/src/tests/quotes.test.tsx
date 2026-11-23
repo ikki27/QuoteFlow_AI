@@ -13,7 +13,7 @@ const catalog=[
  {id:'i3',podjetje_id:'a',naziv:'Zaključno čiščenje',opis:'Čiščenje',vrsta_dela:'Čiščenje',enota:'ura',cena_na_enoto:'20.0000',stopnja_ddv:'0.095',aktivna:false},
 ];
 const line=(id:string,more={})=>({id,postavka_cenika_id:null,zaporedje:1,naziv:'Rušenje estriha',opis:'Odvoz',vrsta_dela:'Rušenje',enota:'m2',cena_na_enoto:'100.0000',kolicina:'2.0000',popust:'0.100000',stopnja_ddv:'0.220000',neto:'180.00',ddv:'39.60',koncna_cena:'219.60',materiali:[],...more});
-const summary={id:'q1',stevilka:'P-2026-001',razlicica:1,stanje:'osnutek',poslano_ob:null,odgovorjeno_ob:null,velja_do:null,nadomescena:false,neto:'180.00',ddv:'39.60',skupaj:'219.60'};
+const summary={id:'q1',stevilka:'P-2026-001',razlicica:1,stanje:'osnutek',poslano_ob:null,odgovorjeno_ob:null,velja_do:'2099-12-31',nadomescena:false,neto:'180.00',ddv:'39.60',skupaj:'219.60'};
 const full=(more={})=>({...summary,postavke:[line('l1')],ddv_po_stopnjah:[{stopnja_ddv:'0.220000',osnova:'180.00',ddv:'39.60'}],...more});
 let list:unknown[];let detail:unknown;let failure:Error|null;
 beforeEach(()=>{vi.clearAllMocks();failure=null;list=[summary];detail=full();
@@ -26,10 +26,12 @@ beforeEach(()=>{vi.clearAllMocks();failure=null;list=[summary];detail=full();
  });
 });
 const open=()=>render(<QuoteEditor client={client} companyId="a" projectId="1"/>);
+// Privzeta veljavnost: danes po ljubljanskem času + 30 dni (LLLL-MM-DD)
+const in30=()=>{const d=new Date(new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Ljubljana'})+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+30);return d.toISOString().slice(0,10);};
 describe('Osnutek ponudbe',()=>{
  it('brez ponudbe ponudi ustvaritev osnutka in pošlje POST',async()=>{
   list=[];open();await userEvent.click(await screen.findByRole('button',{name:'Ustvari osnutek ponudbe'}));
-  await waitFor(()=>expect(mockedApi).toHaveBeenCalledWith(client,P,'POST',{}));
+  await waitFor(()=>expect(mockedApi).toHaveBeenCalledWith(client,P,'POST',{velja_do:in30()}));
  });
  it('pokaže številko, različico, postavke in vsote v evrih',async()=>{
   open();expect(await screen.findByRole('heading',{name:/P-2026-001/})).toBeTruthy();expect(screen.getByText(/različica 1/i)).toBeTruthy();
@@ -61,7 +63,8 @@ describe('Osnutek ponudbe',()=>{
   open();await screen.findByText('Rušenje estriha');
   for(const name of ['Dodaj iz cenika','Ročni vnos','Odstrani Rušenje estriha','Uredi Rušenje estriha','Pošlji stranki'])expect(screen.queryByRole('button',{name})).toBeNull();
   await userEvent.click(screen.getByRole('button',{name:'Pripravi novo različico'}));
-  await waitFor(()=>expect(mockedApi).toHaveBeenCalledWith(client,P,'POST',{}));
+  await waitFor(()=>expect(mockedApi).toHaveBeenCalledWith(client,P,'POST',{velja_do:in30()}));
+  expect(screen.queryByLabelText('Velja do')).toBeNull();
  });
  it('napaka pri nalaganju ne pokaže praznega stanja',async()=>{
   mockedApi.mockRejectedValue(new Error('Podatkovna baza trenutno ni na voljo.'));open();
@@ -76,5 +79,20 @@ describe('Osnutek ponudbe',()=>{
   failure=new Error('Veljavnost ponudbe je potekla.');
   open();await userEvent.click(await screen.findByRole('button',{name:'Pošlji stranki'}));await userEvent.click(await screen.findByRole('button',{name:'Potrdi pošiljanje'}));
   expect((await screen.findByRole('alert')).textContent).toContain('Veljavnost ponudbe je potekla.');expect(screen.getByRole('button',{name:'Pošlji stranki'})).toBeTruthy();
+ });
+ it('osnutek ima polje Velja do, ki shrani datum s PUT',async()=>{
+  open();const field=await screen.findByLabelText('Velja do') as HTMLInputElement;expect(field.value).toBe('2099-12-31');
+  await userEvent.clear(field);await userEvent.type(field,'2027-01-15');await userEvent.click(screen.getByRole('button',{name:'Shrani veljavnost'}));
+  await waitFor(()=>expect(mockedApi).toHaveBeenCalledWith(client,P+'/q1','PUT',{velja_do:'2027-01-15'}));
+ });
+ it('brez datuma veljavnosti pošiljanje ni mogoče in to pove',async()=>{
+  detail=full({velja_do:null});open();await screen.findByText('Rušenje estriha');
+  expect((screen.getByRole('button',{name:'Pošlji stranki'}) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByText('Pred pošiljanjem vnesite datum veljavnosti (Velja do).')).toBeTruthy();
+ });
+ it('s pretečenim datumom veljavnosti pošiljanje ni mogoče in to pove',async()=>{
+  detail=full({velja_do:'2020-01-01'});open();await screen.findByText('Rušenje estriha');
+  expect((screen.getByRole('button',{name:'Pošlji stranki'}) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByText('Datum veljavnosti je že pretekel. Vnesite nov datum (Velja do).')).toBeTruthy();
  });
 });
