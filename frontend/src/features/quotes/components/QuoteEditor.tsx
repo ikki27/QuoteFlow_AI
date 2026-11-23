@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import ActionAlert from '../../../components/ActionAlert';
 import Icon from '../../../components/Icon';
 import { money, percent, quantity } from '../../../utils/format';
-import { createQuote, getQuote, getQuotes, sendQuote } from '../api';
+import { createQuote, getQuote, getQuotes, sendQuote, updateQuote } from '../api';
+import { defaultValidity, validityProblem } from '../validity';
 import { unitLabels } from '../../../utils/units';
 import { stateLabels, type Quote } from '../types';
 
@@ -38,13 +39,18 @@ export default function QuoteEditor({ client, companyId, projectId, onEditItems 
   if (confirming) { asked.current = true; group.current?.querySelector('button')?.focus(); }
   else if (asked.current) { asked.current = false; sendButton.current?.focus(); }
  }, [confirming]);
+ function saveValidity(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  const value = String(new FormData(event.currentTarget).get('velja_do') ?? '');
+  void mutate(() => updateQuote(client, companyId, projectId, quote!.id, { velja_do: value || null }));
+ }
  async function send() { await mutate(() => sendQuote(client, companyId, projectId, quote!.id)); setConfirming(false); }
  const alert = error && <ActionAlert>{error}</ActionAlert>;
  if (loading) return <div className="loading-state" role="status">Nalagam ponudbo …</div>;
  if (loadFailed) return alert;
  if (!quote) return <section className="panel">{alert}<h2>Ponudba</h2><p>Projekt še nima ponudbe. Najprej dodajte postavke z izmerami, nato pripravite osnutek.</p>
-  <button type="button" disabled={busy} onClick={() => void mutate(() => createQuote(client, companyId, projectId))}><Icon name="plus"/>Ustvari osnutek ponudbe</button></section>;
- const draft = quote.stanje === 'osnutek', empty = !quote.postavke.length;
+  <button type="button" disabled={busy} onClick={() => void mutate(() => createQuote(client, companyId, projectId, { velja_do: defaultValidity() }))}><Icon name="plus"/>Ustvari osnutek ponudbe</button></section>;
+ const draft = quote.stanje === 'osnutek', empty = !quote.postavke.length, validity = draft ? validityProblem(quote.velja_do) : '';
  return <section className="quote-editor" aria-busy={busy}>
   <div className="section-heading"><h2 tabIndex={-1} ref={heading}>Ponudba {quote.stevilka}</h2><span className="status-badge">{stateLabels[quote.stanje] ?? quote.stanje}</span></div>
   <p className="muted">Različica {quote.razlicica}</p>
@@ -56,10 +62,12 @@ export default function QuoteEditor({ client, companyId, projectId, onEditItems 
   </tbody></table></div>}
   <dl className="kpi-strip" role="group" aria-label="Vsote ponudbe"><div><dt>Neto</dt><dd>{money(quote.neto)}</dd></div><div><dt>DDV</dt><dd>{money(quote.ddv)}</dd></div><div><dt>Skupaj</dt><dd>{money(quote.skupaj)}</dd></div><div><dt>Velja do</dt><dd>{quote.velja_do ? new Date(quote.velja_do).toLocaleDateString('sl-SI') : '—'}</dd></div></dl>
   {quote.ddv_po_stopnjah.length > 0 && <p className="table-footnote">{quote.ddv_po_stopnjah.map(r => `DDV ${percent(r.stopnja_ddv)}: osnova ${money(r.osnova)}, davek ${money(r.ddv)}`).join(' · ')}</p>}
+  {draft && <form className="editor-form" onSubmit={saveValidity}><div className="form-grid"><label>Velja do<input name="velja_do" type="date" defaultValue={quote.velja_do ?? ''} key={quote.velja_do ?? ''}/></label></div>
+   <div className="row-actions"><button type="submit" className="secondary" disabled={busy}><Icon name="calendar"/>Shrani veljavnost</button></div></form>}
   {alert}
   {draft && (confirming
    ? <div className="row-actions" role="group" aria-label="Potrditev pošiljanja" ref={group} onKeyDown={e => { if (e.key === 'Escape' && !busy) setConfirming(false); }}><p>Po pošiljanju ponudbe ne bo več mogoče spreminjati. Za spremembe pripravite novo različico.</p><button type="button" disabled={busy} onClick={() => void send()}><Icon name="check"/>Potrdi pošiljanje</button><button type="button" className="secondary" disabled={busy} onClick={() => setConfirming(false)}>Prekliči</button></div>
-   : <div className="row-actions"><button type="button" ref={sendButton} disabled={busy || empty} onClick={() => setConfirming(true)}><Icon name="arrow"/>Pošlji stranki</button>{empty && <p className="field-help">Dodajte postavke z izmerami v Postavke projekta.</p>}</div>)}
-  {!draft && (quote.stanje === 'poslana' || quote.stanje === 'zavrnjena') && !quote.nadomescena && <div className="row-actions"><button type="button" className="secondary" disabled={busy} onClick={() => void mutate(() => createQuote(client, companyId, projectId))}><Icon name="refresh"/>Pripravi novo različico</button></div>}
+   : <div className="row-actions"><button type="button" ref={sendButton} disabled={busy || empty || !!validity} onClick={() => setConfirming(true)}><Icon name="arrow"/>Pošlji stranki</button>{empty && <p className="field-help">Dodajte postavke z izmerami v Postavke projekta.</p>}{validity && <p className="field-help">{validity}</p>}</div>)}
+  {!draft && (quote.stanje === 'poslana' || quote.stanje === 'zavrnjena') && !quote.nadomescena && <div className="row-actions"><button type="button" className="secondary" disabled={busy} onClick={() => void mutate(() => createQuote(client, companyId, projectId, { velja_do: defaultValidity() }))}><Icon name="refresh"/>Pripravi novo različico</button></div>}
  </section>;
 }

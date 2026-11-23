@@ -296,7 +296,7 @@ test('vrstni red tabulatorja v osnutku ponudbe je logičen: predogled nima gumbo
  await masterQuote(page);
  await page.getByRole('main').getByRole('heading', { name: /P-2026-001/ }).evaluate(el => { el.setAttribute('tabindex', '-1'); (el as HTMLElement).focus(); });
  const order: string[] = [];
- for (let i = 0; i < 6; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => { const el = document.activeElement!; return el.closest('main') ? (el.getAttribute('aria-label') ?? el.textContent ?? '').trim() : ''; })); }
+ for (let i = 0; i < 10; i++) { await page.keyboard.press('Tab'); order.push(await page.evaluate(() => { const el = document.activeElement!; return el.closest('main') ? (el.getAttribute('aria-label') ?? el.textContent ?? '').trim() : ''; })); }
  const reached = order.filter(Boolean);
  expect(reached).toContain('Pošlji stranki'); expect(reached.filter(n => /^(Uredi|Odstrani|Izmere) (Rušenje|Polaganje|Montaža)/.test(n) || ['Dodaj iz cenika', 'Ročni vnos'].includes(n))).toEqual([]);
 });
